@@ -13,6 +13,8 @@ import sources.txt as txt
 try:
     fn.console(txt.intro_api_img, True)
     while True:
+        fn.ask_size()
+        print(' ')
         question = fn.ask_multiline()
         if not fn.oke(question):
             continue
