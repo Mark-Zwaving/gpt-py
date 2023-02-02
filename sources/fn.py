@@ -76,6 +76,35 @@ def ask_multiline():
 
     return t
 
+def is_int(s):
+    try: i = int(s)
+    except ValueError:
+        console(f'{s} is not an integer')
+        return False  
+    return True
+
+def ask_int(t, default, lst_allowed):
+    allow = ', '.join(lst_allowed)
+    tt  = f'{t}\n{txt.default % default}\n'
+    tt += f'Allowed sizes are: {allow}\n'
+    tt += f'{txt.quit}\n ? '
+    while True:
+        i = input(tt).strip()
+        if not i:
+            return default
+        elif is_int(i):
+            if i in lst_allowed:
+                return i
+            console(f'Answer {i} must be of one of the following values {allow}', True)
+        else:
+            console(f'Answer {i} is not an integer', True)
+
+def ask_size():
+    tw, th = 'Set the width of the image in px', 'Set the height of the image in px'
+    cfg.model_img_width  = ask_int(tw, cfg.model_img_width, txt.lst_sizes)
+    print(' ')
+    cfg.model_img_height = ask_int(th, cfg.model_img_height, txt.lst_sizes)
+
 def process_question_txt( prompt ):
     console('\nProcess question...\n', True)
 
