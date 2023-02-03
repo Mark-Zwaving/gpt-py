@@ -20,8 +20,7 @@ model_txt_max_words = 500 # How many (maximum) words to return
 model_txt_temperature = 0.2
 
 # model_img = '' # Which image model to use
-model_img_width = 256 # Image width
-model_img_height = 256 # Image height
+model_img_size = 256 # Image size (width and height) options are 256, 512, 1024
 model_img_ext = 'png' # Extension of image
 
 log_file = 'log-%s.txt' # Filename for the log
