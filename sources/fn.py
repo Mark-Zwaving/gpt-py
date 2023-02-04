@@ -4,7 +4,7 @@ __author__     =  'Mark Zwaving'
 __email__      =  'markzwaving@gmail.com'
 __license__    =  'GNU General Public License (GPLv3)'
 __copyright__  =  'Copyright (C) Mark Zwaving. All rights reserved.'
-__version__    =  '0.0.3'
+__version__    =  '0.0.5'
 __status__     =  'Development'
 
 import config as cfg
@@ -79,31 +79,101 @@ def ask_multiline():
 def is_int(s):
     try: i = int(s)
     except ValueError:
-        console(f'{s} is not an integer')
         return False  
     return True
 
-def ask_int(t, default, lst_allowed):
-    allow = ', '.join(lst_allowed)
-    tt  = f'{t}\n{txt.default % default}\n'
-    tt += f'Allowed sizes are: {allow}\n'
-    tt += f'{txt.quit}\n ? '
-    while True:
-        i = input(tt).strip()
-        if not i:
-            return default
-        elif is_int(i):
-            if i in lst_allowed:
-                return i
-            console(f'Answer {i} must be of one of the following values {allow}', True)
-        else:
-            console(f'Answer {i} is not an integer', True)
+def is_float(s):
+    try: i = float(s)
+    except ValueError:
+        return False  
+    return True
 
-def ask_size():
-    tw, th = 'Set the width of the image in px', 'Set the height of the image in px'
-    cfg.model_img_width  = ask_int(tw, cfg.model_img_width, txt.lst_sizes)
-    print(' ')
-    cfg.model_img_height = ask_int(th, cfg.model_img_height, txt.lst_sizes)
+def ask( t='', pre='', post='', default='' ):
+    tt = ''
+    if pre: 
+        tt += f'{pre}\n'
+
+    tt += f'{t}\n'
+
+    if default: 
+        tt += f'{txt.default % default}\n'
+
+    if post: 
+        tt += f'{post}\n'
+
+    tt += f'{txt.quit}\n'
+    tt += ' ? '
+
+    answ = input(tt).strip()
+    return answ
+
+def ask_int(t, pre='', post='', default='', lst_allowed=[], i_min=-sys.maxsize-1, i_max=sys.maxsize):
+    while True:
+        answ = ask(t, pre, post, default)
+        if not answ:
+            return default
+        elif is_int(answ):
+            i = int(answ)
+            if i >= i_min and i <= i_max:
+                if lst_allowed:
+                    if i in lst_allowed or answ in lst_allowed:
+                        return i
+                    else:
+                        allow = ", ".join(lst_allowed)
+                        console(f'Answer {i} must be of one of the following values {allow}', True)
+                else:
+                    return i
+            else:
+                console(f'Integer value must be between {i_min} and {i_max}', True)
+        else:
+            console(f'Answer {answ} is not an integer', True)
+
+        print(' ')
+
+def ask_float(t, pre='', post='', default='', lst_allowed=[], fl_min=sys.float_info.min, fl_max=sys.float_info.max):
+    while True:
+        answ = ask(t, pre, post, default)
+        if not answ:
+            return default
+        elif is_float(answ):
+            fl = float(answ)
+            if fl >= fl_min and fl <= fl_max:
+                if lst_allowed:
+                    if fl in lst_allowed or answ in lst_allowed:
+                        return fl
+                    else:
+                        allow = ", ".join(lst_allowed)
+                        console(f'Answer {fl} must be of one of the following values {allow}', True)
+                else:
+                    return fl
+            else:
+                console(f'Float value must be between {fl_min} and {fl_max}', True)
+        else:
+            console(f'Answer {answ} is not an float', True)
+
+        print(' ')
+
+def ask_img_size():
+    cfg.model_img_size = ask_int( 
+        'Set the size (width and height are the same) of the image in px', 
+        pre = '', 
+        post = f'Allowed values are: {", ".join(txt.lst_sizes)}', 
+        default = cfg.model_img_size, 
+        lst_allowed = txt.lst_sizes,
+        i_min = int(txt.lst_sizes[ 0]),
+        i_max = int(txt.lst_sizes[-1])
+    )
+
+def ask_model_temp():
+    temp, fl_min, fl_max = cfg.model_txt_temp, cfg.model_txt_temp_min, cfg.model_txt_temp_max
+    cfg.model_txt_temperature = ask_float(
+        'Set the randomness (=temperature) for calculated output',
+        pre = '',
+        post = f'Set a value between {fl_min} and {fl_max}',
+        default = temp,
+        fl_min = fl_min,
+        fl_max = fl_max
+    )
 
 def process_question_txt( prompt ):
     console('\nProcess question...\n', True)
@@ -125,7 +195,7 @@ def process_question_img( prompt ):
     resp_json = openai.Image.create(
         prompt=prompt,
         n=3, # ?
-        size=f'{cfg.model_img_width}x{cfg.model_img_height}',
+        size=f'{cfg.model_img_size}x{cfg.model_img_size}',
     )
 
     img_url = resp_json["data"][0]["url"]
