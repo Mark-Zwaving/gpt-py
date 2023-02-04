@@ -13,6 +13,8 @@ import sources.txt as txt
 try:
     fn.console(txt.intro_api_txt, True)
     while True:
+        fn.ask_model_temp()
+        print(' ')
         question = fn.ask_multiline()
         if not fn.oke(question):
             continue
@@ -25,7 +27,7 @@ try:
 except KeyboardInterrupt: # User interrupt quit the program with ctrl+c
     pass
 
-fn.console(f'\n{txt.goodbye}', True)
+fn.console(f'\n\n{txt.goodbye}', True)
 
 # {
 #   "choices": [
