@@ -13,7 +13,7 @@ import sources.txt as txt
 try:
     fn.console(txt.intro_api_img, True)
     while True:
-        fn.ask_size()
+        fn.ask_img_size()
         print(' ')
         question = fn.ask_multiline()
         if not fn.oke(question):
@@ -27,4 +27,4 @@ try:
 except KeyboardInterrupt: # User interrupt quit the program with ctrl+c
     pass
 
-fn.console(f'\n{txt.goodbye}', True)
+fn.console(f'\n\n{txt.goodbye}', True)
