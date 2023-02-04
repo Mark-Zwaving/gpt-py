@@ -13,11 +13,14 @@ import os
 organization = '<your organization key>' # Your organization key
 api_key = '<your api key>' # Your Api key
 
+# https://platform.openai.com/docs/models/overview
 model_txt = 'text-davinci-003' # Which text model to use
-model_txt_max_words = 500 # How many (maximum) words to return
+model_txt_max_words = 1024 # How many (maximum) words to return
 # The temperature controls the randomness in the output -> 0 - 1.0 
 # 0 = no randomness, higher is more arbitrare, ie 0.7-0.9 
-model_txt_temperature = 0.2
+model_txt_temp = 0.1
+model_txt_temp_min = 0.0
+model_txt_temp_max = 1.0
 
 # model_img = '' # Which image model to use
 model_img_size = 256 # Image size (width and height) options are 256, 512, 1024
