@@ -15,11 +15,18 @@ try:
     while True:
         fn.ask_img_size()
         print(' ')
-        question = fn.ask_multiline()
-        if not fn.oke(question):
+
+        ok, question = fn.ask_multiline()
+        if not ok:
             continue
 
-        fn.process_question_img(question)
+        ok, img = fn.process_question_img(question)
+
+        if ok:
+            if fn.ask_open_image_with_app(img) in txt.lst_yes:
+                ok, t = fn.open_with_app(img)
+                if not ok: fn.console(t, True)
+            print(' ')
 
         if fn.quit():
             break
