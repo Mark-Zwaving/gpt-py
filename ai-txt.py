@@ -14,12 +14,13 @@ try:
     fn.console(txt.intro_api_txt, True)
     while True:
         fn.ask_model_temp()
+
         print(' ')
-        question = fn.ask_multiline()
-        if not fn.oke(question):
+        ok, question = fn.ask_multiline()
+        if not ok:
             continue
 
-        fn.process_question_txt(question)
+        ok = fn.process_question_txt(question)
 
         if fn.quit():
             break
