@@ -4,13 +4,13 @@ __author__     =  'Mark Zwaving'
 __email__      =  'markzwaving@gmail.com'
 __license__    =  'GNU General Public License (GPLv3)'
 __copyright__  =  'Copyright (C) Mark Zwaving. All rights reserved.'
-__version__    =  '0.0.5'
+__version__    =  '0.0.6'
 __status__     =  'Development'
 
 import config as cfg
 import sources.txt as txt
 import sys, datetime, subprocess, os, webbrowser, openai
-import requests, shutil
+import requests, shutil, re
 
 openai.organization = cfg.organization
 openai.api_key = cfg.api_key  # os.getenv("OPENAI_API_KEY")
@@ -24,13 +24,32 @@ def console(
     if verbose: 
         print(s)
 
-def oke(resp):
+def check_input( resp ):
     if not resp:
         return False
     elif len(resp) < 2:
         return False
 
     return True
+
+def clean_ai_txt(t):
+    res, fl_reg = '', r'[-+]?(?:\d*\.*\d+)'
+    # Replace all floats with comma floats
+    for el in re.findall(fl_reg, t): # Find all floats
+        eln = el.replace('.', ',' )
+        t = t.replace(el, eln)
+
+    for line in t.strip().split('.'):
+        s, cnt = line.strip(), len(line)
+        if s.isnumeric():
+            s += '. '
+        else:
+            s += '.\n'
+    
+        if s.strip() != '.': 
+            res += s 
+
+    return res.replace('  ', ' ').strip()
 
 def quit():
     answ = input(f'{txt.continu}\n{txt.quit}\n').lower()
@@ -70,11 +89,20 @@ def save_img(url): # Save image
         return 'Error'
 
 def ask_multiline():
-    console(f'{txt.send_ai}\n{txt.quit}\n{txt.ask}\n ? ', True)
-    lst = sys.stdin.readlines()
-    t = " ".join(lst).strip()
+    ok, t, ask = False, '', f'{txt.send_ai}\n{txt.quit}\n{txt.ask}\n ? '
+    while not ok:
+        try: 
+            console(ask, True)
+            lst = sys.stdin.readlines()
+            t = " ".join(lst).strip()
+        except Exception as e:
+            console( f'Something went wrong\n{e}\n', True)
+        else:
+            ok = check_input(t) # Check repsonse
+            if not ok:
+                console(f'Question empthy or too short...\n', True)
 
-    return t
+    return ok, t
 
 def is_int(s):
     try: i = int(s)
@@ -149,59 +177,100 @@ def ask_float(t, pre='', post='', default='', lst_allowed=[], fl_min=sys.float_i
             else:
                 console(f'Float value must be between {fl_min} and {fl_max}', True)
         else:
-            console(f'Answer {answ} is not an float', True)
+            console(f'Answer {answ} is not a float', True)
 
         print(' ')
 
 def ask_img_size():
-    cfg.model_img_size = ask_int( 
-        'Set the size (width and height are the same) of the image in px', 
-        pre = '', 
-        post = f'Allowed values are: {", ".join(txt.lst_sizes)}', 
-        default = cfg.model_img_size, 
-        lst_allowed = txt.lst_sizes,
-        i_min = int(txt.lst_sizes[ 0]),
-        i_max = int(txt.lst_sizes[-1])
-    )
+    while True:
+        ok = True
+        try:
+            cfg.model_img_size = ask_int( 
+                'Set the size (width and height are the same) of the image in px', 
+                pre = '', 
+                post = f'Allowed values are: {", ".join(txt.lst_sizes)}', 
+                default = cfg.model_img_size, 
+                lst_allowed = txt.lst_sizes,
+                i_min = int(txt.lst_sizes[ 0]),
+                i_max = int(txt.lst_sizes[-1])
+            )
+        except Exception as e:
+            console(f'Error in ask image size\n{e}\n')
+            ok = False
+
+        if ok:
+            break
 
 def ask_model_temp():
-    temp, fl_min, fl_max = cfg.model_txt_temp, cfg.model_txt_temp_min, cfg.model_txt_temp_max
-    cfg.model_txt_temperature = ask_float(
-        'Set the randomness (=temperature) for calculated output',
-        pre = '',
-        post = f'Set a value between {fl_min} and {fl_max}',
-        default = temp,
-        fl_min = fl_min,
-        fl_max = fl_max
-    )
+    while True:
+        ok = True
+        try:
+            temp, fl_min, fl_max = cfg.model_txt_temp, cfg.model_txt_temp_min, cfg.model_txt_temp_max
+            cfg.model_txt_temperature = ask_float(
+                'Set the randomness (=temperature) for calculated output',
+                pre = '',
+                post = f'Set a value between {fl_min} and {fl_max}',
+                default = temp,
+                fl_min = fl_min,
+                fl_max = fl_max
+            )
+        except Exception as e:
+            console(f'Error in ask model temperature\n{e}\n')
+            ok = False
+
+        if ok:
+            break
+
+def ask_open_image_with_app(img):
+    t = f'Do you want to open the created image with the default app ?'
+    post = 'Press "y" for yess'
+    ans = ask(t, post=post).lower()
+    return ans
 
 def process_question_txt( prompt ):
-    console('\nProcess question...\n', True)
+    ok = True
+    try:
+        console('\nProcess question...\n', True)
+        resp_json = openai.Completion.create(
+            model  = cfg.model_txt, 
+            prompt = prompt, 
+            temperature = cfg.model_txt_temperature, 
+            max_tokens = cfg.model_txt_max_words
+        )
+        answer = clean_ai_txt(resp_json['choices'][0]['text'])
+        console(f'{txt.line_hash}\n{answer}\n{txt.line_hash}\n', True)
 
-    resp_json = openai.Completion.create(
-        model  = cfg.model_txt, 
-        prompt = prompt, 
-        temperature = cfg.model_txt_temperature, 
-        max_tokens = cfg.model_txt_max_words
-    )
+    except Exception as e:
+        console(f'Error in process question from AI\n{e}', True)
+        ok = False
 
-    answer = resp_json['choices'][0]['text'].strip().replace('. ', '.\n') # euhm ok
-    console(f'{txt.line_hash}\n{answer}\n{txt.line_hash}\n', True)
-    save_log(prompt, answer)
+    else:
+        save_log(prompt, answer)
+
+    return ok
 
 def process_question_img( prompt ):
-    console('\nProcess image...\n', True)
+    ok, img_loc = True, ''
+    try:
+        console('\nProcess image...\n', True)
+        resp_json = openai.Image.create(
+            prompt=prompt,
+            n=3, # ?
+            size=f'{cfg.model_img_size}x{cfg.model_img_size}',
+        )
+        img_url = resp_json["data"][0]["url"]
+        img_loc = save_img(img_url)
+        console(f'{txt.line_hash}\nLocal image saved at:\n{img_loc}\n{txt.line_hash}\n', True)
 
-    resp_json = openai.Image.create(
-        prompt=prompt,
-        n=3, # ?
-        size=f'{cfg.model_img_size}x{cfg.model_img_size}',
-    )
+    except Exception as e:
+        console(f'Error in process question from AI\n{e}', True)
+        ok = False
 
-    img_url = resp_json["data"][0]["url"]
-    img_loc = save_img(img_url)
-    console(f'{txt.line_hash}\nLocal image saved at:\n{img_loc}\n{txt.line_hash}\n', True)
-    save_log(prompt, f'Local image: {img_loc}\nOnline image: {img_url}')
+    else:
+        t = f'Local image: {img_loc}\nOnline image: {img_url}'
+        save_log(prompt, t)
+
+    return ok, img_loc
 
 def open_with_app(path): # Not implemented (yet)
     '''Function opens a file with an default application'''
@@ -244,7 +313,7 @@ def open_with_app(path): # Not implemented (yet)
     else:
         t += 'File not found\n'
 
-    t += 'Open file successful' if ok else f'Error open file\n{err}'
-    console(t)
+    t += f'Open {path} successful\n' if ok else \
+         f'Error open {path}\n{err}\n'
 
-    return ok
+    return ok, t
