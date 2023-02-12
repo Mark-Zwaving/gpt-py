@@ -20,7 +20,7 @@ try:
         if not ok:
             continue
 
-        ok, img = fn.process_question_img(question)
+        ok, img, _ = fn.process_question_img(question)
 
         if ok:
             if fn.ask_open_image_with_app(img) in txt.lst_yes:
