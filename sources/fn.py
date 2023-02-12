@@ -222,7 +222,7 @@ def ask_model_temp():
             break
 
 def ask_open_image_with_app(img):
-    t = f'Do you want to open the created image with the default app ?'
+    t = f'Do you want to open the local image with the default app ?'
     post = 'Press "y" for yess'
     ans = ask(t, post=post).lower()
     return ans
@@ -260,7 +260,9 @@ def process_question_img( prompt ):
         )
         img_url = resp_json["data"][0]["url"]
         img_loc = save_img(img_url)
-        console(f'{txt.line_hash}\nLocal image saved at:\n{img_loc}\n{txt.line_hash}\n', True)
+        t  = f'{txt.line_hash}\nLocal: {img_loc}\n'
+        t += f'Url: {img_url}\n{txt.line_hash}\n'
+        console(t, True)
 
     except Exception as e:
         console(f'Error in process question from AI\n{e}', True)
@@ -270,7 +272,7 @@ def process_question_img( prompt ):
         t = f'Local image: {img_loc}\nOnline image: {img_url}'
         save_log(prompt, t)
 
-    return ok, img_loc
+    return ok, img_loc, img_url
 
 def open_with_app(path): # Not implemented (yet)
     '''Function opens a file with an default application'''
