@@ -32,14 +32,23 @@ def check_input( resp ):
 
     return True
 
+# Unused, maybe implement later
 def clean_ai_txt(t):
-    res, fl_reg = '', r'[-+]?(?:\d*\.*\d+)'
+    res = '' 
+    fl_reg = r'[-+]?(?:\d*\.*\d+)'
+    fl_lst = r'(\d*\. )'
+
     # Replace all floats with comma floats
     for el in re.findall(fl_reg, t): # Find all floats
         eln = el.replace('.', ',' )
         t = t.replace(el, eln)
+    
+    # Replace all lst nums with parenthesis )
+    for el in re.findall(fl_lst, t): # Find all floats
+        eln = el.replace('. ', ') ' )
+        t = t.replace(el, eln) 
 
-    for line in t.strip().split('.'):
+    for line in t.strip().split('. '):
         s, cnt = line.strip(), len(line)
         if s.isnumeric():
             s += '. '
@@ -237,7 +246,7 @@ def process_question_txt( prompt ):
             temperature = cfg.model_txt_temperature, 
             max_tokens = cfg.model_txt_max_words
         )
-        answer = clean_ai_txt(resp_json['choices'][0]['text'])
+        answer = resp_json['choices'][0]['text'].strip()
         console(f'{txt.line_hash}\n{answer}\n{txt.line_hash}\n', True)
 
     except Exception as e:
