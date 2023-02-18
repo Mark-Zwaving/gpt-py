@@ -36,8 +36,6 @@ if __name__ == '__main__':
             elif opt == 3:
                 option.ai_yt_txt(menu=True)
 
-            fn.ln()
-
     except KeyboardInterrupt: # User interrupt quit the program with ctrl+c
         pass
 
