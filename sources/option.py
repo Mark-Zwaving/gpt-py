@@ -16,12 +16,11 @@ import config as cfg
 def ai_txt(menu=False):
     answ = ask.double(
         t       = 'Set the randomness (=temperature) for calculated output',
-        pre     = '',
         post    = f'Set a value between {cfg.model_txt_temp_min} and {cfg.model_txt_temp_max}',
-        default = cfg.model_txt_temp,
-        fl_min  = cfg.model_txt_temp_min,
-        fl_max  = cfg.model_txt_temp_max,
-        menu    = menu
+        default = cfg.model_txt_temp, 
+        fl_min  = cfg.model_txt_temp_min, 
+        fl_max  = cfg.model_txt_temp_max, 
+        menu    = menu 
     )
     if menu and fn.goto_main_menu(answ):
         return txt.lst_menu[0]
@@ -50,11 +49,10 @@ def ai_img(menu=False):
         return txt.lst_menu[0]
 
     ok, img, _ = fn.process_question_img(question, size)
-    if ok:
-        if ask.open_image_with_app(menu) in txt.lst_yes:
-            ok, t = fn.open_with_app(img)
-            if not ok: 
-                fn.console(t, True)
+    if ok and ask.open_image_with_app(menu) in txt.lst_yes:
+        ok, t = fn.open_with_app(img)
+        if not ok: 
+            fn.console(t, True)
 
 def ai_yt_txt(menu=False):
     id, url = ask.yt_url(menu)
