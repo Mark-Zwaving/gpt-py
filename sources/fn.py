@@ -28,14 +28,12 @@ def ln():
     console(' ', True)
 
 def goto_main_menu(t):
-    if str(t).lower().strip() in txt.lst_menu:
-        return True
-    else:
-        return False
+    s = str(t).strip().replace('m^D', 'm').replace('m^Z', 'm').lower().strip()
+    return True if s in txt.lst_menu else False
 
 def check_input(t, menu=False):
     t = t.lower().strip()
-    if not t:
+    if t == txt.empthy:
         return False
     elif menu and goto_main_menu(t):
         return True
