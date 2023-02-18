@@ -11,6 +11,7 @@ import config as cfg
 import sources.txt as txt
 import sys, datetime, subprocess, os, webbrowser, openai
 import requests, shutil, re
+import pytube, youtube_transcript_api
 
 openai.organization = cfg.organization
 openai.api_key = cfg.api_key  # os.getenv("OPENAI_API_KEY")
@@ -20,17 +21,35 @@ def console(
         verbose=cfg.verbose  # If set to True it always prints on a screen
     ):
     '''Function shows output string (s) on screen'''
-    s = str(s)
     if verbose: 
-        print(s)
+        print(str(s))
 
-def check_input( resp ):
-    if not resp:
+def ln():
+    console(' ', True)
+
+def goto_main_menu(t):
+    if str(t).lower().strip() in txt.lst_menu:
+        return True
+    else:
         return False
-    elif len(resp) < 2:
+
+def check_input(t, menu=False):
+    t = t.lower().strip()
+    if not t:
+        return False
+    elif menu and goto_main_menu(t):
+        return True
+    elif len(t) < 2:
         return False
 
     return True
+
+def cleanup_spaces(t):
+    '''Remove unnecessary (double) whitespaces'''
+    t = re.sub('\n\n+', '\n', t)
+    t = re.sub('\s\s+', ' ',  t)
+    t = t.replace('  ', ' ')
+    return t
 
 # Unused, maybe implement later
 def clean_ai_txt(t):
@@ -93,164 +112,36 @@ def save_img(url): # Save image
         with open(img_local,'wb') as f:
             shutil.copyfileobj(img_online.raw, f)
         return img_local
+        
     else:
         console(f'Image {url} could not be retrieved', True)
         return 'Error'
 
-def ask_multiline():
-    ok, t, ask = False, '', f'{txt.send_ai}\n{txt.quit}\n{txt.ask}\n ? '
-    while not ok:
-        try: 
-            console(ask, True)
-            lst = sys.stdin.readlines()
-            t = " ".join(lst).strip()
-        except Exception as e:
-            console( f'Something went wrong\n{e}\n', True)
-        else:
-            ok = check_input(t) # Check repsonse
-            if not ok:
-                console(f'Question empthy or too short...\n', True)
-
-    return ok, t
-
 def is_int(s):
     try: i = int(s)
-    except ValueError:
-        return False  
+    except ValueError: return False  
     return True
 
 def is_float(s):
     try: i = float(s)
-    except ValueError:
-        return False  
+    except ValueError: return False  
     return True
 
-def ask( t='', pre='', post='', default='' ):
-    tt = ''
-    if pre: 
-        tt += f'{pre}\n'
-
-    tt += f'{t}\n'
-
-    if default: 
-        tt += f'{txt.default % default}\n'
-
-    if post: 
-        tt += f'{post}\n'
-
-    tt += f'{txt.quit}\n'
-    tt += ' ? '
-
-    answ = input(tt).strip()
-    return answ
-
-def ask_int(t, pre='', post='', default='', lst_allowed=[], i_min=-sys.maxsize-1, i_max=sys.maxsize):
-    while True:
-        answ = ask(t, pre, post, default)
-        if not answ:
-            return default
-        elif is_int(answ):
-            i = int(answ)
-            if i >= i_min and i <= i_max:
-                if lst_allowed:
-                    if i in lst_allowed or answ in lst_allowed:
-                        return i
-                    else:
-                        allow = ", ".join(lst_allowed)
-                        console(f'Answer {i} must be of one of the following values {allow}', True)
-                else:
-                    return i
-            else:
-                console(f'Integer value must be between {i_min} and {i_max}', True)
-        else:
-            console(f'Answer {answ} is not an integer', True)
-
-        print(' ')
-
-def ask_float(t, pre='', post='', default='', lst_allowed=[], fl_min=sys.float_info.min, fl_max=sys.float_info.max):
-    while True:
-        answ = ask(t, pre, post, default)
-        if not answ:
-            return default
-        elif is_float(answ):
-            fl = float(answ)
-            if fl >= fl_min and fl <= fl_max:
-                if lst_allowed:
-                    if fl in lst_allowed or answ in lst_allowed:
-                        return fl
-                    else:
-                        allow = ", ".join(lst_allowed)
-                        console(f'Answer {fl} must be of one of the following values {allow}', True)
-                else:
-                    return fl
-            else:
-                console(f'Float value must be between {fl_min} and {fl_max}', True)
-        else:
-            console(f'Answer {answ} is not a float', True)
-
-        print(' ')
-
-def ask_img_size():
-    while True:
-        ok = True
-        try:
-            cfg.model_img_size = ask_int( 
-                'Set the size (width and height are the same) of the image in px', 
-                pre = '', 
-                post = f'Allowed values are: {", ".join(txt.lst_sizes)}', 
-                default = cfg.model_img_size, 
-                lst_allowed = txt.lst_sizes,
-                i_min = int(txt.lst_sizes[ 0]),
-                i_max = int(txt.lst_sizes[-1])
-            )
-        except Exception as e:
-            console(f'Error in ask image size\n{e}\n')
-            ok = False
-
-        if ok:
-            break
-
-def ask_model_temp():
-    while True:
-        ok = True
-        try:
-            temp, fl_min, fl_max = cfg.model_txt_temp, cfg.model_txt_temp_min, cfg.model_txt_temp_max
-            cfg.model_txt_temperature = ask_float(
-                'Set the randomness (=temperature) for calculated output',
-                pre = '',
-                post = f'Set a value between {fl_min} and {fl_max}',
-                default = temp,
-                fl_min = fl_min,
-                fl_max = fl_max
-            )
-        except Exception as e:
-            console(f'Error in ask model temperature\n{e}\n')
-            ok = False
-
-        if ok:
-            break
-
-def ask_open_image_with_app(img):
-    t = f'Do you want to open the local image with the default app ?'
-    post = 'Press "y" for yess'
-    ans = ask(t, post=post).lower()
-    return ans
-
-def process_question_txt( prompt ):
+def process_question_txt( prompt, temp ):
     ok = True
     try:
         console('\nProcess question...\n', True)
         resp_json = openai.Completion.create(
             model  = cfg.model_txt, 
             prompt = prompt, 
-            temperature = cfg.model_txt_temperature, 
+            temperature = temp, 
             max_tokens = cfg.model_txt_max_words
         )
         answer = resp_json['choices'][0]['text'].strip()
         console(f'{txt.line_hash}\n{answer}\n{txt.line_hash}\n', True)
 
     except Exception as e:
-        console(f'Error in process question from AI\n{e}', True)
+        console(f'Error in process question for text from Open AI\n{e}\n', True)
         ok = False
 
     else:
@@ -258,14 +149,14 @@ def process_question_txt( prompt ):
 
     return ok
 
-def process_question_img( prompt ):
+def process_question_img( prompt, size ):
     ok, img_loc = True, ''
     try:
         console('\nProcess image...\n', True)
         resp_json = openai.Image.create(
             prompt=prompt,
             n=3, # ?
-            size=f'{cfg.model_img_size}x{cfg.model_img_size}',
+            size=f'{size}x{size}',
         )
         img_url = resp_json["data"][0]["url"]
         img_loc = save_img(img_url)
@@ -274,7 +165,7 @@ def process_question_img( prompt ):
         console(t, True)
 
     except Exception as e:
-        console(f'Error in process question from AI\n{e}', True)
+        console(f'Error in process question for image from Open AI\n{e}\n', True)
         ok = False
 
     else:
@@ -283,7 +174,36 @@ def process_question_img( prompt ):
 
     return ok, img_loc, img_url
 
-def open_with_app(path): # Not implemented (yet)
+def process_question_transcript( title, description, prompt, lang, max_words ):
+    ok, output = True, ''
+    try:
+        t  = '\nProcess question...\n'
+        console(t, True)
+
+        resp_json = openai.Completion.create(
+            model  = cfg.model_txt, 
+            prompt = prompt, 
+            temperature = 0, 
+            max_tokens = cfg.model_txt_max_words
+        )
+        answer = resp_json['choices'][0]['text'].strip()
+
+        output  = f'A summary in {lang} of maximum {max_words} words.\n'
+        output += f'Video title: {title}\n'
+        output += f'{txt.line_hash}\n'
+        output += f'{answer}'
+        console(f'{txt.line_hash}\n{output}\n{txt.line_hash}', True)
+
+    except Exception as e:
+        console(f'Error in process question for transcript from Open AI\n{e}\n', True)
+        ok = False
+
+    else:
+        save_log(prompt, output)
+
+    return ok
+
+def open_with_app(path):
     '''Function opens a file with an default application'''
     ok, err, t = False, '', ''
 
@@ -328,3 +248,49 @@ def open_with_app(path): # Not implemented (yet)
          f'Error open {path}\n{err}\n'
 
     return ok, t
+
+def yt_meta_info(id):
+    ok, title, description = False, '', ''
+    try: # Get meta info movie parameters
+        url = f'{txt.yt_base_url}{id}'
+        yt = pytube.YouTube(url)
+    
+    except Exception as e:
+        console(f'Error in YouTube stream\n{url}\n{e}\n', True)
+
+    else:
+        # Print media info
+        title = cleanup_spaces(yt.title)
+        description = cleanup_spaces(yt.description)
+        ok = True
+
+    return ok, title, description
+
+def yt_transcript(id):
+    ok, trs_time, trs_txt = False, '', ''
+    try:
+        url      = f'{txt.yt_base_url}{id}'
+        dict_trs = youtube_transcript_api.YouTubeTranscriptApi.get_transcript(id)
+        trs_txt  = '. '.join([d['text'] for d in dict_trs])
+
+    except Exception as e:
+        console(f'Error in YouTube Transscript\n{url}\n{e}\n', True)
+
+    else:
+        ok = True
+
+    return ok, trs_time, trs_txt[:cfg.model_max_tokens]
+
+# [
+#     {
+#         'text': 'Hey there',
+#         'start': 7.58,
+#         'duration': 6.13
+#     },
+#     {
+#         'text': 'how are you',
+#         'start': 14.08,
+#         'duration': 7.58
+#     },
+#     # ...
+# ]
