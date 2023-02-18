@@ -4,7 +4,7 @@ __author__     =  'Mark Zwaving'
 __email__      =  'markzwaving@gmail.com'
 __license__    =  'GNU General Public License (GPLv3)'
 __copyright__  =  'Copyright (C) Mark Zwaving. All rights reserved.'
-__version__    =  '0.0.3'
+__version__    =  '0.0.5'
 __status__     =  'Development'
 
 import config as cfg
@@ -14,20 +14,21 @@ import sources.fn as fn
 import sys
 
 def q( 
-        t='', pre='', post='', 
-        default='', menu=False
+        t=txt.empthy, pre=txt.empthy, post=txt.empthy, 
+        default=txt.empthy, 
+        menu=False
     ):
-    tt = ''
-    if pre: 
+    tt = txt.empthy
+
+    if pre != txt.empthy: 
         tt += f'{pre}\n'
 
     tt += f'{t}\n'
 
-
-    if default: 
+    if default != txt.empthy: 
         tt += f'{txt.default % default}\n'
 
-    if post: 
+    if post != txt.empthy: 
         tt += f'{post}\n'
 
     if menu:
@@ -42,36 +43,37 @@ def q(
     return answ
 
 def multiline(menu=False):
-    ask_inp  = f'{txt.send_ai}\n'
-    if menu: 
-        ask_inp += f'{txt.go_back_to_menu}\n'
+    ask_inp = f'{txt.send_ai}\n'
+    if menu: ask_inp += f'{txt.go_back_to_menu}\n'
     ask_inp += f'{txt.quit}\n'
     ask_inp += f'{txt.ask_question}\n'
     ask_inp += ' ? '
 
     while True:
         fn.console(ask_inp, True)
-        lst = sys.stdin.readlines()
-        answ = " ".join(lst).strip().replace('  ', ' ')
+        lst  = sys.stdin.readlines()
+        answ = ' '.join(lst).replace('  ', ' ').strip()
 
-        if menu and fn.goto_main_menu(answ):
+        if answ == txt.empthy:
+            fn.console(f'\nCannot send an empthy question...\n', True)
+        elif menu and fn.goto_main_menu(answ):
+            fn.ln()
             return txt.lst_menu[0]
-
-        if fn.check_input(answ, menu): # Check response
-            return answ 
+        elif len(answ) < 2:
+            fn.console(f'\nQuestion is too short...\n', True)
         else:
-            fn.console(f'Question empthy or too short...\n', True)
+            return answ
 
 def integer(
-        t, pre='', post='', 
-        default='', lst_allowed=[], 
+        t, pre=txt.empthy, post=txt.empthy, default=txt.empthy, 
+        lst_allowed=[], 
         i_min=-sys.maxsize-1, i_max=sys.maxsize,
         menu=False 
     ):
 
     while True:
         answ = q(t, pre, post, default, menu)
-        if not answ:
+        if answ == txt.empthy:
             return default
         elif menu and fn.goto_main_menu(answ):
             return txt.lst_menu[0]
@@ -93,15 +95,15 @@ def integer(
 
 
 def double(
-        t, pre='', post='', 
-        default='', lst_allowed=[], 
+        t, pre=txt.empthy, post=txt.empthy, default=txt.empthy, 
+        lst_allowed=[], 
         fl_min=sys.float_info.min, fl_max=sys.float_info.max, 
         menu=False
     ):
 
     while True:
         answ = q(t, pre, post, default, menu)
-        if not answ:
+        if answ == txt.empthy:
             return default
         elif menu and fn.goto_main_menu(answ):
             return txt.lst_menu[0]
@@ -122,36 +124,36 @@ def double(
             fn.console(f'Answer {answ} is not a float\n', True)
 
 def language(menu=False):
+    default = cfg.yt_summary_lang
     while True:
         answ = q(
             t       = 'Give a language to answer in', 
             post    = 'See file - sources/lang.py - for the language codes or languages', 
-            default = cfg.yt_summary_lang,
+            default = default,
             menu    = menu
         )
 
-        if not answ:
-            return cfg.yt_summary_lang
+        if answ == txt.empthy:
+            return default
         elif menu and fn.goto_main_menu(answ):
-            answ = txt.lst_menu[0]
+            return txt.lst_menu[0]
         elif lang.is_available(answ):
-            break
+            return answ 
         else:
             fn.console(f'Language - {answ} - not found\n', True)
 
-    return answ
-
 def max_words(menu=False):
+    default = cfg.answ_words
     answ = integer( 
         t       = 'Set the maximum amount of words for the summary', 
-        default = cfg.answ_words_words, 
+        default = default, 
         i_min   = cfg.answ_words_min,
         i_max   = cfg.answ_words_max,
         menu    = menu
     )
 
-    if not answ:
-        answ = cfg.answ_words
+    if answ == txt.empthy:
+        answ = default
     elif menu and fn.goto_main_menu(answ):
         answ = txt.lst_menu[0]
 
@@ -159,17 +161,17 @@ def max_words(menu=False):
 
 def yt_url(menu=False):
     while True:
-        id, url = '', ''
+        id, url = txt.empthy, txt.empthy
         answ = q(
-            t    = 'Give an url or an id of a YouTube video', 
+            t = 'Give an url or an id of a YouTube video', 
             menu = menu
         )
 
-        if not answ:
-            fn.console(f'Url or id cannot be empthy\n', True)
-            continue
-        elif menu and fn.goto_main_menu(answ):
-            id = txt.lst_menu[0]
+        if answ == txt.empthy: 
+            fn.console(f'Url or id cannot be empthy\n', True) 
+            continue 
+        elif menu and fn.goto_main_menu(answ): 
+            id = txt.lst_menu[0] 
         elif 'https://' in answ: 
             id, url = answ.split('=')[-1], answ 
         else:
