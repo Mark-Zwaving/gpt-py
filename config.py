@@ -18,13 +18,16 @@ model_txt = 'text-davinci-003' # Which text model to use
 model_txt_max_words = 1024 # How many (maximum) words to return
 # The temperature controls the randomness in the output -> 0 - 1.0 
 # 0 = no randomness, higher is more arbitrare, ie 0.7-0.9 
-model_txt_temp = 0.1
+model_txt_temp     = 0.0
 model_txt_temp_min = 0.0
 model_txt_temp_max = 1.0
 
 # model_img = '' # Which image model to use
 model_img_size = 256 # Image size (width and height) options are 256, 512, 1024
 model_img_ext = 'png' # Extension of image
+
+# Maximum input of words for the AI model
+model_max_tokens = 4097 
 
 log_file = 'log-%s.txt' # Filename for the log
 img_file = f'img-%s.{model_img_ext}' # Filename for the output image
@@ -36,5 +39,14 @@ dir_img  = os.path.join(dir_root, 'img') # Image dir
 path_img = os.path.join(dir_img, img_file) # Path image file
 
 charset = 'utf-8' # Charset for log file
-
 verbose = False # More verbose
+
+# Minimum length of questions 
+min_question_len = 2 
+
+# Answer language for a YouTube video
+# See file sources/lang.py for the available languages
+answ_lang      = 'English' # Set language summary
+answ_words     = 300 # Summary of X words
+answ_words_min =  50 # Minimum of X words
+answ_words_max = 600 # Maximum of X words
