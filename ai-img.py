@@ -4,34 +4,25 @@ __author__     =  'Mark Zwaving'
 __email__      =  'markzwaving@gmail.com'
 __license__    =  'GNU General Public License (GPLv3)'
 __copyright__  =  'Copyright (C) Mark Zwaving. All rights reserved.'
-__version__    =  '0.0.4'
+__version__    =  '0.0.6'
 __status__     =  'Development'
 
 import sources.fn as fn
 import sources.txt as txt
+import sources.option as option
 
-try:
-    fn.console(txt.intro_api_img, True)
-    while True:
-        fn.ask_img_size()
-        print(' ')
+if __name__ == '__main__':
 
-        ok, question = fn.ask_multiline()
-        if not ok:
-            continue
+    try:
+        fn.console(txt.intro_api_img, True)
 
-        ok, img, _ = fn.process_question_img(question)
+        while True:
+            option.ai_img(menu=False)
 
-        if ok:
-            if fn.ask_open_image_with_app(img) in txt.lst_yes:
-                ok, t = fn.open_with_app(img)
-                if not ok: fn.console(t, True)
-            print(' ')
+            if fn.quit():
+                break
 
-        if fn.quit():
-            break
+    except KeyboardInterrupt: # User interrupt quit the program with ctrl+c
+        pass
 
-except KeyboardInterrupt: # User interrupt quit the program with ctrl+c
-    pass
-
-fn.console(f'\n\n{txt.goodbye}', True)
+    fn.console(f'\n\n{txt.goodbye}', True)
