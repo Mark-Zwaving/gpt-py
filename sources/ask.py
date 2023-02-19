@@ -124,7 +124,7 @@ def double(
             fn.console(f'Answer {answ} is not a float\n', True)
 
 def language(menu=False):
-    default = cfg.yt_summary_lang
+    default = cfg.answ_lang
     while True:
         answ = q(
             t       = 'Give a language to answer in', 
@@ -172,8 +172,12 @@ def yt_url(menu=False):
             continue 
         elif menu and fn.goto_main_menu(answ): 
             id = txt.lst_menu[0] 
-        elif 'https://' in answ: 
-            id, url = answ.split('=')[-1], answ 
+        elif 'https://' in answ: # A (complete) url given
+            if 'https://youtu.be/' in answ: # The shortened url, https://youtu.be/OU494py-G8Y
+                id = answ.split('/')[-1]
+                url = f'{txt.yt_base_url}{id}'
+            else: # Normal url
+                id, url = answ.split('=')[-1], answ 
         else:
             id, url = answ, f'{txt.yt_base_url}{answ}'
 
