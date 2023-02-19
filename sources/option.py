@@ -54,7 +54,7 @@ def ai_img(menu=False):
         if not ok: 
             fn.console(t, True)
 
-def ai_yt_txt(menu=False):
+def ai_yt_trs(menu=False):
     id, url = ask.yt_url(menu)
     if menu and fn.goto_main_menu(id):
         return txt.lst_menu[0]
@@ -81,6 +81,6 @@ def ai_yt_txt(menu=False):
         # t += f'Description: {description[:80]}'
         fn.console(t, True)
 
-        prompt = f'{txt.yt_ask_summary % (lang, words)}{trs_txt}'
+        prompt = f'{txt.ask_summary % (lang, words)}{trs_txt}'
         ok = fn.process_question_transcript( title, description, prompt, lang, words )
 
