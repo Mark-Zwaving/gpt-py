@@ -63,15 +63,15 @@ lst_sizes = ['256', '512', '1024']
 lst_menu  = ['m', 'menu']
 
 ask_summary = '''
-    Give a professional and in depth summary 
-    in the language %s of no more than %s words 
-    of the following text: 
+Give a professional and in depth summary 
+in the language %s of no more than %s words 
+of the following text: 
 '''
 
 ask_analyse = '''
-    Give a professional and in depth analyse 
-    in the language %s of no more than %s words 
-    of the following text: 
+Give a professional and in depth analyse 
+in the language %s of no more than %s words 
+of the following text: 
 '''
 
 yt_base_url = 'https://www.youtube.com/watch?v='
