@@ -190,7 +190,7 @@ def process_question_transcript( title, description, prompt, lang, max_words ):
         output += f'Video title: {title}\n'
         output += f'{txt.line_hash}\n'
         output += f'{answer}'
-        console(f'{txt.line_hash}\n{output}\n{txt.line_hash}', True)
+        console(f'{txt.line_hash}\n{output}\n{txt.line_hash}\n', True)
 
     except Exception as e:
         console(f'Error in process question for transcript from Open AI\n{e}\n', True)
