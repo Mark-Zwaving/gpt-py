@@ -13,7 +13,7 @@ cli_colls, cli_rows = shutil.get_terminal_size()
 line_hash = '#' * (cli_colls - 1) # Decoration line
 empthy = '' 
 
-ask_question = 'Your questison is...' 
+ask_question = 'Your question' 
 continu = 'Press a key to continue...' 
 quit = 'Press <ctrl+c> to quit' 
 go_back_to_menu = 'Press "m" to go back to the main menu' 
