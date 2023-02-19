@@ -17,7 +17,7 @@ if __name__ == '__main__':
         fn.console(txt.intro_api_yt_txt, True)
 
         while True:
-            option.ai_yt_txt(menu=False)
+            option.ai_yt_trs(menu=False)
 
             if fn.quit():
                 break
