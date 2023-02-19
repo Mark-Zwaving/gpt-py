@@ -4,6 +4,8 @@ Access Open AI GPT3 with Python3 for texts, creating images and a summary of You
   
 Note: after a trial - *of maximum $18,- and/or after three months* - the usage of the openai api is not free anymore  
 
+License: <a href="https://github.com/Mark-Zwaving/gpt-py/blob/main/LICENSE" target="_blank">GNU General Public License v3.0</a>  
+
 ---
 
 ### Install Python version >= 3.7
