@@ -34,7 +34,7 @@ if __name__ == '__main__':
                 option.ai_img(menu=True)
 
             elif opt == 3:
-                option.ai_yt_txt(menu=True)
+                option.ai_yt_trs(menu=True)
 
     except KeyboardInterrupt: # User interrupt quit the program with ctrl+c
         pass
