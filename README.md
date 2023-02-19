@@ -7,7 +7,7 @@ When creating images the images will be saved in the - img - directory.
 
 The software will connect to **_Open AI GPT3_** with **_Python3_**.  
   
-This software can:  
+>This software can:  
 >1. Give AI answers on text questions  
 >2. Create AI images  
 >3. Make AI summaries of YouTube transcripts  
