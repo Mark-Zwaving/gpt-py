@@ -21,6 +21,12 @@ The software will connect to **_Open AI GPT3_** with **_Python3_**.
 
 ---
 
+### Text models options
+Models: <a href="https://platform.openai.com/docs/models/gpt-3-5" target="_blank"> GPT-3.5 </a>
+
+#### For configuration options  
+>_See config.py_  
+
 ### Install Python version >= 3.7
 <a href="https://www.python.org/downloads/" target="_blank">https://www.python.org/downloads/</a>  
 
@@ -71,6 +77,4 @@ Created images will be saved in the img directory
 >_See log/log-test.txt_  
 >_See img/_  
 
-### Configuration options  
->_See config.py_  
   
