@@ -14,7 +14,9 @@ organization = '<your organization key>' # Your organization key
 api_key = '<your api key>' # Your Api key
 
 # https://platform.openai.com/docs/models/overview
-model_txt = 'text-davinci-003' # Which text model to use
+# For example: gpt-3.5-turbo, gpt-3.5-turbo-0301, text-davinci-003, 
+# text-davinci-002, code-davinci-002
+model_txt = 'gpt-3.5-turbo' # Which text model to use
 model_txt_max_words = 1024 # How many (maximum) words to return
 # The temperature controls the randomness in the output -> 0 - 1.0 
 # 0 = no randomness, higher is more arbitrare, ie 0.7-0.9 
